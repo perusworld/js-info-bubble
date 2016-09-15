@@ -74,6 +74,18 @@ function InfoBubble(opt_options) {
     options['disableAnimation'] = false;
   }
 
+  if (options['doToggle'] == undefined) {
+    options['doToggle'] = false;
+  }
+
+  if (options['toggleClassName'] == undefined) {
+    options['toggleClassName'] = "doToggle";
+  }
+
+  if (options['containerId'] == undefined) {
+    options['containerId'] = null;
+  }
+
   if (options['minWidth'] == undefined) {
     options['minWidth'] = this.MIN_WIDTH_;
   }
@@ -803,6 +815,29 @@ InfoBubble.prototype.px = function (num) {
   return num;
 };
 
+InfoBubble.prototype.toggleClass = function (ref, toggleClass) {
+  if (null != ref) {
+    toggleClass = ' ' + toggleClass;
+    var baseClass = ref.className.replace(toggleClass, '')
+    if (ref.className.endsWith(toggleClass)) {
+      ref.className = baseClass;
+    } else {
+      ref.className = baseClass + toggleClass;
+    }
+  }
+};
+
+InfoBubble.prototype.toggleBackgroundClass = function (ref, toggleClass) {
+  if (null != ref) {
+    toggleClass = ' ' + toggleClass;
+    var baseClass = ref.backgroundClassName.replace(toggleClass, '')
+    if (ref.backgroundClassName.endsWith(toggleClass)) {
+      ref.setBackgroundClassName(baseClass);
+    } else {
+      ref.setBackgroundClassName(baseClass + toggleClass);
+    }
+  }
+};
 
 /**
  * Add events to stop propagation
@@ -815,10 +850,19 @@ InfoBubble.prototype.addEvents_ = function () {
     'dblclick', 'contextmenu', 'click'];
 
   var bubble = this.bubble_;
+  var ref = this;
+  var refContainer = null;
+  if (null != ref.get('containerId')) {
+    refContainer = document.getElementById(ref.get('containerId'));
+  }
   this.listeners_ = [];
   for (var i = 0, event; event = events[i]; i++) {
     this.listeners_.push(
       google.maps.event.addDomListener(bubble, event, function (e) {
+        if (ref.get('doToggle') && e.type === 'mouseup') {
+          ref.toggleClass(refContainer, ref.get('toggleClassName'));
+          ref.toggleBackgroundClass(ref, ref.get('toggleClassName'));
+        }
         e.cancelBubble = true;
         if (e.stopPropagation) {
           e.stopPropagation();
